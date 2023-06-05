@@ -46,9 +46,10 @@ class MovingController extends Controller
 
         $moving_id = $moving->id;
 
-        // save activity
-        $activity = app(ActivityController::class);
-        $activity->store(auth()->user()->id, 'create', 'Moving', $moving_id);
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' created IPA ' . $moving->ipa_no;
+        $logger->store($description);
 
         return redirect()->route('moving_details.create', $moving_id);
     }
@@ -81,9 +82,10 @@ class MovingController extends Controller
             'remarks' => $request->remarks,
         ]));
 
-        // save activity
-        $activity = app(ActivityController::class);
-        $activity->store(auth()->user()->id, 'update', 'Moving', $moving->id);
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' updated IPA ' . $moving->ipa_no;
+        $logger->store($description);
 
         return redirect()->route('moving_details.create', $id);
     }
@@ -129,9 +131,10 @@ class MovingController extends Controller
             'remarks' => $request->remarks,
         ]));
 
-        // save activity
-        $activity = app(ActivityController::class);
-        $activity->store(auth()->user()->id, 'update', 'Moving', $moving->id);
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' created IPA ' . $moving->ipa_no;
+        $logger->store($description);
 
         return redirect()->route('movings.index')->with('success', 'Data successfully updated');
     }

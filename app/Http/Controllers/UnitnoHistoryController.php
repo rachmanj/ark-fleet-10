@@ -30,7 +30,7 @@ class UnitnoHistoryController extends Controller
         ]);
 
         $equipment = Equipment::find($request->equipment_id);
-        UnitnoHistory::create([
+        $unit_history = UnitnoHistory::create([
             'date' => $request->date,
             'equipment_id' => $request->equipment_id,
             'old_unit_no' => $equipment->unit_no,
@@ -41,6 +41,11 @@ class UnitnoHistoryController extends Controller
         $equipment->update([
             'unit_no' => $request->new_unit_no
         ]);
+
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' changed unit no ' . $unit_history->old_unit_no . ' to ' . $unit_history->new_unit_no;
+        $logger->store($description);
 
         return redirect()->route('unitnohistories.index')->with('sccuess', 'Unit change successfully added');
     }

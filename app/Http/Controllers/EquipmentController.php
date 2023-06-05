@@ -55,9 +55,10 @@ class EquipmentController extends Controller
             'created_by' => auth()->user()->id,
         ]));
 
-        // save activity
-        $activity = app(ActivityController::class);
-        $activity->store(auth()->user()->id, 'create', 'Equipment', $equipment->id);
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' created new equipment ' . $equipment->unit_no;
+        $logger->store($description);
 
         return redirect()->route('equipments.index')->with('success', 'Data successfully added');
     }
@@ -101,9 +102,10 @@ class EquipmentController extends Controller
             'updated_by' => auth()->user()->id,
         ]));
 
-        // save activity
-        $activity = app(ActivityController::class);
-        $activity->store(auth()->user()->id, 'update', 'Equipment', $equipment->id);
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' updated equipment ' . $equipment->unit_no;
+        $logger->store($description);
 
         return redirect()->route('equipments.index')->with('success', 'Data successfully updated');
     }

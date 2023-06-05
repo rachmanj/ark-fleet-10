@@ -56,9 +56,10 @@ class DocumentController extends Controller
         $document->user_id = auth()->id();
         $document->save();
 
-        // save activity
-        $activity = app(ActivityController::class);
-        $activity->store(auth()->user()->id, 'create', 'Document', $document->id);
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' created Document ' . $document->document_no;
+        $logger->store($description);
 
         return redirect()->route('documents.index')->with('success', 'Data succesfully added');
     }
@@ -100,9 +101,10 @@ class DocumentController extends Controller
 
         $document->save();
 
-        // save activity
-        $activity = app(ActivityController::class);
-        $activity->store(auth()->user()->id, 'update', 'Document', $document->id);
+        // log activity
+        $logger = app(LoggerController::class);
+        $description = auth()->user()->name . ' updated Document ' . $document->document_no;
+        $logger->store($description);
 
         return redirect()->route('documents.index')->with('success', 'Data succesfully updated');
     }

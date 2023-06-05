@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Document;
 use App\Models\Equipment;
 use App\Models\HazardReport;
+use App\Models\Logger;
 use App\Models\PlantGroup;
 use App\Models\PlantType;
 use App\Models\Unitstatus;
@@ -22,7 +23,8 @@ class DashboardController extends Controller
             'unit_status' => $this->getUnitStatus(),
             'plant_types' => $this->getPlantType(),
             'plant_groups' => $this->getPlantGroup(),
-            'activities' => $this->getActivities(),
+            // 'activities' => $this->getActivities(),
+            'activities' => $this->getLogs(),
             'documents_expired' => $this->getDocumentsExpired(),
             'projects_for_active_units' => $this->getCurrentProjectsForActiveUnits(),
             'active_units' => $this->getActiveUnits(),
@@ -86,8 +88,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-
         return $activities;
+    }
+
+    public function getLogs()
+    {
+        $logs = Logger::orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return $logs;
     }
 
     public function getDocumentsExpired()

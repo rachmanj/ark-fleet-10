@@ -3,6 +3,7 @@
 /public/build
 /public/hot
 /public/storage
+/public/document_upload
 /storage/*.key
 /vendor
 .env
@@ -16,3 +17,5 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+server.php
+.htaccess

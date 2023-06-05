@@ -16,7 +16,7 @@
       @include('dashboard.document_expired')
     </div>
     <div class="col-6">
-      {{-- @include('dashboard.activities') --}}
+      @include('dashboard.logger')
     </div>
   </div>  
 

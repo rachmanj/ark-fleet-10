@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\EquipmentResource;
 use App\Models\Equipment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EquipmentApiController extends Controller
 {

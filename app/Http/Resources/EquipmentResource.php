@@ -15,6 +15,7 @@ class EquipmentResource extends JsonResource
             'project' => $this->current_project->project_code,
             'plant_group' => $this->plant_group->name,
             'model' => $this->unitmodel->model_no,
+            'nomor_polisi' => $this->nomor_polisi,
         ];
     }
 }

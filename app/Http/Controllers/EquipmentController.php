@@ -257,8 +257,12 @@ class EquipmentController extends Controller
                     } else {
                         return '<span class="badge badge-danger">B/D</span>';
                     }
+                } elseif ($equipment->unitstatus_id == 3) {
+                    return '<span class="badge badge-default">Scrap</span>';
+                } elseif ($equipment->unitstatus_id == 4) {
+                    return '<span class="badge badge-default">Sold</span>';
                 } else {
-                    return '<span class="badge badge-default">Non Active</span>';
+                    return '<span class="badge badge-default">In-active</span>';
                 }
             })
             ->addIndexColumn()

@@ -129,6 +129,7 @@ class EquipmentController extends Controller
             'engine_model'  => $request->engine_model,
             'bahan_bakar'   => $request->bahan_bakar,
             'remarks'       => $request->remarks,
+            'capacity'      => $request->capacity,
         ]);
 
         // save activity

@@ -8,12 +8,16 @@ use App\Models\DocumentType;
 use App\Models\Equipment;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\View;
 
 class DocumentController extends Controller
 {
     public function index()
     {
-        return view('documents.index');
+        $doctypes = DocumentType::orderby('name', 'asc')->get();
+        return view('documents.index', compact('doctypes'));
     }
 
     public function create()
@@ -142,7 +146,24 @@ class DocumentController extends Controller
 
     public function index_data()
     {
-        $documents = Document::with('document_type')->latest()->get();
+        $documents = Document::with(['document_type', 'equipment', 'supplier']);
+
+        // Apply filters if provided
+        if (request()->has('document_no') && request('document_no') != '') {
+            $documents->where('document_no', 'like', '%' . request('document_no') . '%');
+        }
+
+        if (request()->has('document_type') && request('document_type') != '') {
+            $documents->where('document_type_id', request('document_type'));
+        }
+
+        if (request()->has('unit_no') && request('unit_no') != '') {
+            $documents->whereHas('equipment', function ($query) {
+                $query->where('unit_no', 'like', '%' . request('unit_no') . '%');
+            });
+        }
+
+        $documents = $documents->latest()->get();
 
         return datatables()->of($documents)
             ->editColumn('document_date', function ($documents) {
@@ -156,10 +177,10 @@ class DocumentController extends Controller
                 }
             })
             ->addColumn('doctype', function ($documents) {
-                return $documents->document_type->name;
+                return $documents->document_type->name ?? 'N/A';
             })
             ->addColumn('unit_no', function ($documents) {
-                return $documents->equipment->unit_no;
+                return $documents->equipment->unit_no ?? 'N/A';
             })
             ->addIndexColumn()
             ->addColumn('action', 'documents.action')

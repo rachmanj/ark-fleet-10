@@ -1,52 +1,147 @@
-<div class="row">
-  <div class="col-6">
-    <dl class="row">
-      <dt class="col-sm-4">Unit No</dt>
-      <dd class="col-sm-8">: {{ $equipment->unit_no }}</dd>
-      <dt class="col-sm-4">Active Date</dt>
-      <dd class="col-sm-8">: {{ $equipment->active_date ? date('d-M-Y', strtotime($equipment->active_date)) : ' -' }}</dd>
-      <dt class="col-sm-4">Description</dt>
-      <dd class="col-sm-8">: {{ $equipment->description }}</dd>
-      <dt class="col-sm-4">Model</dt>
-      <dd class="col-sm-8">: {{ $equipment->unitmodel->model_no . ' | ' . $equipment->unitmodel->description}}</dd>
-      <dt class="col-sm-4">Manufacture</dt>
-      <dd class="col-sm-8">: {{ $equipment->unitmodel->manufacture->name }}</dd>
-      <dt class="col-sm-4">Plant Type</dt>
-      <dd class="col-sm-8">: {{ $equipment->plant_type->name }}</dd>
-      <dt class="col-sm-4">Asset Category</dt>
-      <dd class="col-sm-8">: {{ $equipment->asset_category->name }}</dd>
-      <dt class="col-sm-4">Current Location</dt>
-      <dd class="col-sm-8">: {{ $equipment->current_project->project_code . ' - ' . $equipment->current_project->bowheer .', '. $equipment->current_project->location }}</dd>
-      <dt class="col-sm-4">Status</dt>
-      <dd class="col-sm-8">: {{ $equipment->unitstatus->name }}</dd>
-    </dl>
-  </div>
-  <div class="col-6">
-    <dl class="row">
-      <dt class="col-sm-4">Serial No</dt>
-      <dd class="col-sm-8">: {{ $equipment->serial_no }}</dd>
-      {{-- <dt class="col-sm-4">Chasis No</dt>
-      <dd class="col-sm-8">: {{ $equipment->chasis_no }}</dd> --}}
-      <dt class="col-sm-4">Engine Model</dt>
-      <dd class="col-sm-8">: {{ $equipment->engine_model}}</dd>
-      <dt class="col-sm-4">Machine No</dt>
-      <dd class="col-sm-8">: {{ $equipment->machine_no }}</dd>
-      <dt class="col-sm-4">Nomor Polisi</dt>
-      <dd class="col-sm-8">: {{ $equipment->nomor_polisi }}</dd>
-      <dt class="col-sm-4">Body Color</dt>
-      <dd class="col-sm-8">: {{ $equipment->warna }}</dd>
-      <dt class="col-sm-4">Fuel Type</dt>
-      <dd class="col-sm-8">: {{ $equipment->bahan_bakar }}</dd>
-      <dt class="col-sm-4">Capacity</dt>
-      <dd class="col-sm-8">: {{ $equipment->capacity }}</dd>
-      <dt class="col-sm-4">Created by</dt>
-      <dd class="col-sm-8">: {{ $equipment->creator->name }}</dd>
-    </dl>
-  </div>
-</div>
-<div class="row">
-  <div class="col-12">
-    <label for="remarks">Remarks</label>
-    <textarea name="remarks" rows="2" class="form-control">{{ $equipment->remarks }}</textarea>
-  </div>
+<div class="equipment-info">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h5 class="text-primary border-bottom pb-2 mb-3">
+                <i class="fas fa-truck"></i> Equipment Details
+            </h5>
+            <div class="info-group">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Unit No</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->unit_no }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Active Date</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">
+                            {{ $equipment->active_date ? date('d-M-Y', strtotime($equipment->active_date)) : ' -' }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Description</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->description }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Model</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">
+                            {{ $equipment->unitmodel->model_no . ' | ' . $equipment->unitmodel->description }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Manufacture</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->unitmodel->manufacture->name }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Plant Type</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->plant_type->name }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Asset Category</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->asset_category->name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h5 class="text-primary border-bottom pb-2 mb-3">
+                <i class="fas fa-cogs"></i> Technical Specifications
+            </h5>
+            <div class="info-group">
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Serial No</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->serial_no ?: '-' }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Engine Model</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->engine_model ?: '-' }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Machine No</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->machine_no ?: '-' }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Nomor Polisi</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->nomor_polisi ?: '-' }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Body Color</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->warna ?: '-' }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Fuel Type</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->bahan_bakar ?: '-' }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-5 col-form-label">Capacity</label>
+                    <div class="col-sm-7">
+                        <p class="form-control-plaintext">{{ $equipment->capacity ?: '-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h5 class="text-primary border-bottom pb-2 mb-3">
+                <i class="fas fa-map-marker-alt"></i> Location & Notes
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Current Location</label>
+                        <p class="form-control-plaintext border rounded p-2 bg-light">
+                            {{ $equipment->current_project->project_code . ' - ' . $equipment->current_project->bowheer . ', ' . $equipment->current_project->location }}
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <p class="form-control-plaintext border rounded p-2 bg-light">
+                            {{ $equipment->unitstatus->name }}
+                            @if ($equipment->unitstatus_id == 1)
+                                @if ($equipment->is_rfu == 1)
+                                    <span class="badge badge-success ml-2">RFU</span>
+                                @else
+                                    <span class="badge badge-danger ml-2">B/D</span>
+                                @endif
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="remarks">Remarks</label>
+                <div class="border rounded p-2 bg-light">
+                    {{ $equipment->remarks ?: 'No remarks available' }}
+                </div>
+            </div>
+            <div class="text-muted mt-3">
+                <small>Created by: {{ $equipment->creator->name }}</small>
+            </div>
+        </div>
+    </div>
 </div>

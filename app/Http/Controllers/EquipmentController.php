@@ -23,7 +23,23 @@ class EquipmentController extends Controller
 {
     public function index()
     {
-        return view('equipments.index');
+        $plant_types = PlantType::orderby('name', 'asc')->get();
+        $projects = Project::orderBy('project_code', 'asc')->get();
+        $unit_nos = Equipment::orderBy('unit_no', 'asc')->pluck('unit_no');
+        $models = Unitmodel::orderBy('model_no', 'asc')->get();
+        $asset_categories = AssetCategory::orderBy('name', 'asc')->get();
+        $manufactures = DB::table('manufactures')->orderBy('name', 'asc')->get();
+        $unitstatuses = Unitstatus::orderBy('name', 'asc')->get();
+
+        return view('equipments.index', compact(
+            'plant_types',
+            'projects',
+            'unit_nos',
+            'models',
+            'asset_categories',
+            'manufactures',
+            'unitstatuses'
+        ));
     }
 
     public function create()
@@ -232,8 +248,60 @@ class EquipmentController extends Controller
 
     public function index_data()
     {
-        $equipments = Equipment::with('unitmodel.manufacture', 'current_project', 'plant_type')
-            ->orderBy('unit_no', 'asc')->get();
+        $equipments = Equipment::with('unitmodel.manufacture', 'current_project', 'plant_type', 'asset_category');
+
+        // Apply filters if provided
+        if (request()->has('unit_no') && request('unit_no') != '') {
+            $equipments->where('unit_no', request('unit_no'));
+        }
+
+        if (request()->has('model') && request('model') != '') {
+            $equipments->whereHas('unitmodel', function ($query) {
+                $query->where('model_no', request('model'));
+            });
+        }
+
+        if (request()->has('asset_category') && request('asset_category') != '') {
+            $equipments->whereHas('asset_category', function ($query) {
+                $query->where('name', request('asset_category'));
+            });
+        }
+
+        if (request()->has('manufacture') && request('manufacture') != '') {
+            $equipments->whereHas('unitmodel.manufacture', function ($query) {
+                $query->where('name', request('manufacture'));
+            });
+        }
+
+        if (request()->has('serial_no') && request('serial_no') != '') {
+            $equipments->where('serial_no', 'like', '%' . request('serial_no') . '%');
+        }
+
+        if (request()->has('plant_type') && request('plant_type') != '') {
+            $equipments->whereHas('plant_type', function ($query) {
+                $query->where('name', 'like', '%' . request('plant_type') . '%');
+            });
+        }
+
+        if (request()->has('current_project') && request('current_project') != '') {
+            $equipments->whereHas('current_project', function ($query) {
+                $query->where('project_code', 'like', '%' . request('current_project') . '%')
+                    ->orWhere('location', 'like', '%' . request('current_project') . '%');
+            });
+        }
+
+        if (request()->has('is_rfu') && request('is_rfu') != '') {
+            if (request('is_rfu') == 'RFU') {
+                $equipments->where('is_rfu', 1)->where('unitstatus_id', 1);
+            } elseif (request('is_rfu') == 'B/D') {
+                $equipments->where('is_rfu', 0)->where('unitstatus_id', 1);
+            } elseif (is_numeric(request('is_rfu'))) {
+                // For other statuses (In-active, Scrap, Sold) which are unitstatus_id values
+                $equipments->where('unitstatus_id', request('is_rfu'));
+            }
+        }
+
+        $equipments = $equipments->orderBy('unit_no', 'asc')->get();
 
         return datatables()->of($equipments)
             ->addColumn('model', function ($equipments) {

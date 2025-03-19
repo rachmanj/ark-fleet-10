@@ -12,7 +12,8 @@ class MovingController extends Controller
 {
     public function index()
     {
-        return view('movings.index');
+        $projects = Project::orderBy('project_code', 'asc')->get();
+        return view('movings.index', compact('projects'));
     }
 
     public function create()
@@ -151,7 +152,50 @@ class MovingController extends Controller
 
     public function index_data()
     {
-        $movings = Moving::with('creator')->orderBy('ipa_date', 'desc')
+        $movings = Moving::with(['creator', 'from_project', 'to_project']);
+
+        // Handle quick search
+        if (request()->has('quick_search') && request('quick_search') != '') {
+            $searchTerm = request('quick_search');
+            $movings->where(function ($query) use ($searchTerm) {
+                $query->where('ipa_no', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('ipa_date', 'like', '%' . $searchTerm . '%')
+                    ->orWhereHas('from_project', function ($q) use ($searchTerm) {
+                        $q->where('project_code', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('location', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('to_project', function ($q) use ($searchTerm) {
+                        $q->where('project_code', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('location', 'like', '%' . $searchTerm . '%');
+                    });
+            });
+        }
+
+        // Apply IPA No filter
+        if (request()->has('ipa_no') && request('ipa_no') != '') {
+            $movings->where('ipa_no', 'like', '%' . request('ipa_no') . '%');
+        }
+
+        // Apply date range filter
+        if (request()->has('date_from') && request('date_from') != '') {
+            $movings->where('ipa_date', '>=', request('date_from'));
+        }
+
+        if (request()->has('date_to') && request('date_to') != '') {
+            $movings->where('ipa_date', '<=', request('date_to'));
+        }
+
+        // Apply from_project filter
+        if (request()->has('from_project_id') && request('from_project_id') != '') {
+            $movings->where('from_project_id', request('from_project_id'));
+        }
+
+        // Apply to_project filter
+        if (request()->has('to_project_id') && request('to_project_id') != '') {
+            $movings->where('to_project_id', request('to_project_id'));
+        }
+
+        $movings = $movings->orderBy('ipa_date', 'desc')
             ->orderBy('ipa_no', 'desc')
             ->get();
 

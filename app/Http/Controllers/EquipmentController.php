@@ -250,6 +250,32 @@ class EquipmentController extends Controller
     {
         $equipments = Equipment::with('unitmodel.manufacture', 'current_project', 'plant_type', 'asset_category');
 
+        // Handle quick search - search across multiple fields
+        if (request()->has('quick_search') && request('quick_search') != '') {
+            $searchTerm = request('quick_search');
+            $equipments->where(function ($query) use ($searchTerm) {
+                $query->where('unit_no', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('serial_no', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhereHas('unitmodel', function ($q) use ($searchTerm) {
+                        $q->where('model_no', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('unitmodel.manufacture', function ($q) use ($searchTerm) {
+                        $q->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('asset_category', function ($q) use ($searchTerm) {
+                        $q->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('plant_type', function ($q) use ($searchTerm) {
+                        $q->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('current_project', function ($q) use ($searchTerm) {
+                        $q->where('project_code', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('location', 'like', '%' . $searchTerm . '%');
+                    });
+            });
+        }
+
         // Apply filters if provided
         if (request()->has('unit_no') && request('unit_no') != '') {
             $equipments->where('unit_no', request('unit_no'));

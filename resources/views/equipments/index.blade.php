@@ -629,7 +629,6 @@
                 pageLength: 10,
                 responsive: true,
                 language: {
-                    processing: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>',
                     emptyTable: '<div class="text-center py-4"><i class="fas fa-box-open fa-3x text-muted mb-3"></i><br>No equipment found</div>'
                 },
                 dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6">>rtip', // Remove search box from DOM

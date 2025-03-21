@@ -142,6 +142,12 @@
                                 <i class="fas fa-history mr-1"></i> Changes
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-payreq" data-toggle="pill" href="#content-payreq"
+                                role="tab" aria-controls="content-payreq" aria-selected="false">
+                                <i class="fas fa-money-check-alt mr-1"></i> Payreq
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -202,6 +208,50 @@
                             <div class="overlay-wrapper">
                                 @include('equipments.tabs.changes')
                                 <div class="overlay dark d-none" id="changes-loading">
+                                    <i class="fas fa-3x fa-sync-alt fa-spin"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade animated fadeIn" id="content-payreq" role="tabpanel"
+                            aria-labelledby="tab-payreq">
+                            <div class="overlay-wrapper">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Payment Requisition Summary</h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" id="refresh-payreq"
+                                                data-toggle="tooltip" title="Refresh Data">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table id="payreq-table" class="table table-bordered table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Type</th>
+                                                        <th class="text-right">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="payreq-data">
+                                                    <!-- Data will be loaded via AJAX -->
+                                                    <tr>
+                                                        <td colspan="2" class="text-center">Loading data...</td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>Total</th>
+                                                        <th id="payreq-total" class="text-right">0.00</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="overlay dark d-none" id="payreq-loading">
                                     <i class="fas fa-3x fa-sync-alt fa-spin"></i>
                                 </div>
                             </div>
@@ -662,6 +712,102 @@
                 responsive: true,
                 fixedHeader: true,
                 autoWidth: false,
+            });
+
+            // Fetch and display Payreq data
+            function loadPayreqData() {
+                $('#payreq-loading').removeClass('d-none');
+
+                $.ajax({
+                    url: '{{ env('PAYREQ_API_URL', 'http://payreq.local') }}/api/realization-details/sum-by-unit',
+                    method: 'GET',
+                    data: {
+                        unit_no: '{{ $equipment->unit_no }}'
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            let html = '';
+
+                            if (response.data.type_sums && response.data.type_sums.length > 0) {
+                                // Sort expense types alphabetically
+                                response.data.type_sums.sort((a, b) => a.type.localeCompare(b.type));
+
+                                response.data.type_sums.forEach(function(item) {
+                                    // Capitalize the first letter of each type
+                                    const formattedType = item.type.charAt(0).toUpperCase() +
+                                        item.type.slice(1);
+
+                                    html += `<tr>
+                                        <td>${formattedType}</td>
+                                        <td class="text-right">${item.total_amount}</td>
+                                    </tr>`;
+                                });
+                            } else {
+                                html = `<tr>
+                                    <td colspan="2" class="text-center">No payment requisition data found</td>
+                                </tr>`;
+                            }
+
+                            $('#payreq-data').html(html);
+
+                            // Use the grand_total from the API response if available
+                            if (response.data.grand_total) {
+                                $('#payreq-total').text(response.data.grand_total);
+                            } else {
+                                // Fallback to calculating total if grand_total is not provided
+                                let totalAmount = 0;
+                                if (response.data.type_sums && response.data.type_sums.length > 0) {
+                                    response.data.type_sums.forEach(function(item) {
+                                        const amountValue = parseFloat(item.total_amount
+                                            .replace(/,/g, ''));
+                                        totalAmount += amountValue;
+                                    });
+                                }
+                                $('#payreq-total').text(new Intl.NumberFormat('id-ID').format(
+                                    totalAmount));
+                            }
+                        } else {
+                            $('#payreq-data').html(`<tr>
+                                <td colspan="2" class="text-center text-danger">Error loading data</td>
+                            </tr>`);
+                            $('#payreq-total').text('0.00');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $('#payreq-data').html(`<tr>
+                            <td colspan="2" class="text-center text-danger">Could not connect to Payreq service</td>
+                        </tr>`);
+                        $('#payreq-total').text('0.00');
+                        console.error('Payreq API error:', error);
+                    },
+                    complete: function() {
+                        $('#payreq-loading').addClass('d-none');
+                    }
+                });
+            }
+
+            // Load Payreq data when tab is shown
+            $('a[href="#content-payreq"]').on('shown.bs.tab', function(e) {
+                loadPayreqData();
+            });
+
+            // Refresh Payreq data when refresh button is clicked
+            $('#refresh-payreq').on('click', function() {
+                const $btn = $(this);
+
+                // Show spinning animation on button
+                $btn.addClass('fa-spin');
+                $btn.prop('disabled', true);
+
+                // Reload data
+                loadPayreqData();
+
+                // Stop spinning and re-enable button after a short delay
+                setTimeout(function() {
+                    $btn.removeClass('fa-spin');
+                    $btn.prop('disabled', false);
+                }, 1000);
             });
 
             // Handle tab switching with loading indicators

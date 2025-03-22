@@ -55,8 +55,13 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label for="unit_no">Unit Number</label>
-                                                    <input type="text" class="form-control" id="unit_no" name="unit_no"
-                                                        placeholder="Enter unit number">
+                                                    <select class="form-control select2bs4" id="unit_no" name="unit_no">
+                                                        <option value="">-- Select Unit Number --</option>
+                                                        @foreach ($equipments as $equipment)
+                                                            <option value="{{ $equipment->unit_no }}">
+                                                                {{ $equipment->unit_no }}</option>
+                                                        @endforeach
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>
@@ -76,20 +81,23 @@
                         </div>
                     </div>
 
-                    <table id="documents" class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Doc. No</th>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Unit No</th>
-                                <th>Due Date</th>
-                                <th>action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <!-- DataTable Container -->
+                    <div class="table-responsive">
+                        <table id="documents" class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Doc. No</th>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Unit No</th>
+                                    <th>Due Date</th>
+                                    <th>action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div> {{-- card-body --}}
             </div> {{-- card --}}
         </div>
@@ -146,6 +154,11 @@
                 placeholder: "Select a document type"
             });
 
+            $('#unit_no').select2({
+                theme: 'bootstrap4',
+                placeholder: "Select a unit number"
+            });
+
             // Show loading overlay
             const loadingOverlay = $('.loading-overlay');
             loadingOverlay.removeClass('d-none');
@@ -155,6 +168,11 @@
                 processing: true,
                 serverSide: true,
                 deferRender: true,
+                searching: false,
+                lengthChange: true,
+                info: true,
+                paging: true,
+                dom: 'lfrtip',
                 ajax: {
                     url: '{{ route('documents.index.data') }}',
                     data: function(d) {
@@ -216,7 +234,7 @@
                 pageLength: 10,
                 order: [
                     [2, 'desc']
-                ] // Sort by date column by default
+                ] // Sort by date column descending
             });
 
             // Search button click event
@@ -229,6 +247,7 @@
             $('#btn-reset').on('click', function() {
                 $('#search-form')[0].reset();
                 $('#document_type').val('').trigger('change'); // Reset Select2
+                $('#unit_no').val('').trigger('change'); // Reset Select2
                 loadingOverlay.removeClass('d-none');
                 documentsTable.ajax.reload();
             });

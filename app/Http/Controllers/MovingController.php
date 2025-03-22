@@ -150,9 +150,36 @@ class MovingController extends Controller
         return redirect()->route('movings.index')->with('success', 'IPA successfully deleted');
     }
 
+    public function get_equipment_details($id)
+    {
+        $moving = Moving::with(['moving_details.equipment.unitmodel', 'moving_details.equipment.plant_type'])
+            ->findOrFail($id);
+
+        $data = [
+            'moving' => [
+                'ipa_no' => $moving->ipa_no,
+                'ipa_date' => date('d-M-Y', strtotime($moving->ipa_date)),
+            ],
+            'equipment' => []
+        ];
+
+        foreach ($moving->moving_details as $detail) {
+            if ($detail->equipment) {
+                $data['equipment'][] = [
+                    'unit_code' => $detail->equipment->unit_no,
+                    'description' => $detail->equipment->description,
+                    'unit_model' => $detail->equipment->unitmodel->model_no ?? 'N/A',
+                    'plant_type' => $detail->equipment->plant_type->name ?? 'N/A'
+                ];
+            }
+        }
+
+        return response()->json($data);
+    }
+
     public function index_data()
     {
-        $movings = Moving::with(['creator', 'from_project', 'to_project']);
+        $movings = Moving::with(['creator', 'from_project', 'to_project', 'moving_details.equipment']);
 
         // Handle quick search
         if (request()->has('quick_search') && request('quick_search') != '') {
@@ -167,6 +194,10 @@ class MovingController extends Controller
                     ->orWhereHas('to_project', function ($q) use ($searchTerm) {
                         $q->where('project_code', 'like', '%' . $searchTerm . '%')
                             ->orWhere('location', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('moving_details.equipment', function ($q) use ($searchTerm) {
+                        $q->where('unit_no', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('description', 'like', '%' . $searchTerm . '%');
                     });
             });
         }
@@ -195,11 +226,23 @@ class MovingController extends Controller
             $movings->where('to_project_id', request('to_project_id'));
         }
 
-        $movings = $movings->orderBy('ipa_date', 'desc')
-            ->orderBy('ipa_no', 'desc')
-            ->get();
+        // Apply equipment filter
+        if (request()->has('equipment_search') && request('equipment_search') != '') {
+            $equipmentSearch = request('equipment_search');
+            $movings->whereHas('moving_details.equipment', function ($query) use ($equipmentSearch) {
+                $query->where('unit_no', 'like', '%' . $equipmentSearch . '%')
+                    ->orWhere('description', 'like', '%' . $equipmentSearch . '%');
+            });
+        }
 
-        return datatables()->of($movings)
+        // ALWAYS sort by ipa_date desc, followed by ipa_no desc - no exceptions
+        $movings->orderBy('ipa_date', 'desc')
+            ->orderBy('ipa_no', 'desc');
+
+        $movings = $movings->get();
+
+        return datatables()
+            ->of($movings)
             ->editColumn('ipa_date', function ($movings) {
                 return date('d-M-Y', strtotime($movings->ipa_date));
             })
@@ -212,9 +255,31 @@ class MovingController extends Controller
             ->editColumn('created_by', function ($movings) {
                 return $movings->creator->name;
             })
+            ->addColumn('equipment', function ($movings) {
+                $equipmentList = $movings->moving_details->map(function ($detail) {
+                    return $detail->equipment->unit_no ?? 'N/A';
+                })->join(', ');
+
+                $fullEquipmentList = $equipmentList;
+
+                // If the equipment list is too long, truncate it for display
+                if (strlen($equipmentList) > 50) {
+                    $equipmentList = substr($equipmentList, 0, 47) . '...';
+                }
+
+                if (empty($fullEquipmentList)) {
+                    return 'No equipment';
+                }
+
+                // Add tooltip and make it clickable to show modal
+                $count = $movings->moving_details->count();
+                return '<a href="javascript:void(0)" class="show-equipment" data-id="' . $movings->id . '" data-toggle="tooltip" 
+                        title="' . htmlspecialchars($fullEquipmentList) . '">'
+                    . htmlspecialchars($equipmentList) . ' <span class="badge badge-primary">' . $count . '</span></a>';
+            })
             ->addIndexColumn()
             ->addColumn('action', 'movings.action')
-            ->rawColumns(['action'])
+            ->rawColumns(['action', 'equipment'])
             ->toJson();
     }
 }

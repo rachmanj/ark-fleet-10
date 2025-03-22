@@ -17,7 +17,8 @@ class DocumentController extends Controller
     public function index()
     {
         $doctypes = DocumentType::orderby('name', 'asc')->get();
-        return view('documents.index', compact('doctypes'));
+        $equipments = Equipment::orderBy('unit_no', 'asc')->get();
+        return view('documents.index', compact('doctypes', 'equipments'));
     }
 
     public function create()
@@ -159,11 +160,11 @@ class DocumentController extends Controller
 
         if (request()->has('unit_no') && request('unit_no') != '') {
             $documents->whereHas('equipment', function ($query) {
-                $query->where('unit_no', 'like', '%' . request('unit_no') . '%');
+                $query->where('unit_no', request('unit_no'));
             });
         }
 
-        $documents = $documents->latest()->get();
+        $documents = $documents->orderBy('document_date', 'desc')->get();
 
         return datatables()->of($documents)
             ->editColumn('document_date', function ($documents) {

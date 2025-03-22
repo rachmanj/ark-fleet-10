@@ -92,6 +92,9 @@ Route::middleware('auth')->group(function () {
     });
     Route::resource('movings', MovingController::class);
 
+    // Custom route for equipment details
+    Route::get('/moving/{moving}/equipment', [MovingController::class, 'get_equipment_details']);
+
     Route::prefix('moving_details')->name('moving_details.')->group(function () {
         Route::get('/incart/data', [MovingDetailController::class, 'unit_incart_data'])->name('unit_incart.data');
         Route::get('/{from_project_id}/data', [MovingDetailController::class, 'available_unit_data'])->name('available_unit.data');

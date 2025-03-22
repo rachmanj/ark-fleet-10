@@ -42,7 +42,7 @@
                                             <div class="col-md-12">
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" id="quick_search"
-                                                        placeholder="Quick search: Type IPA number, origin, destination...">
+                                                        placeholder="Quick search: Type IPA number, origin, destination, unit no...">
                                                     <div class="input-group-append">
                                                         <button class="btn btn-primary" type="button"
                                                             id="btn-quick-search">
@@ -122,6 +122,14 @@
                                                         </select>
                                                     </div>
                                                 </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="equipment_search">Equipment</label>
+                                                        <input type="text" class="form-control" id="equipment_search"
+                                                            name="equipment_search"
+                                                            placeholder="Search by equipment unit no">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -161,15 +169,19 @@
                     @endif
 
                     <div class="table-responsive animated fadeIn delay-2">
+                        <p class="text-muted mb-2"><small><i class="fas fa-info-circle mr-1"></i> Table is automatically
+                                sorted by Date (newest first)</small></p>
                         <table id="movings" class="table table-bordered table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>No</th>
                                     <th>Reg No</th>
-                                    <th>Date</th>
+                                    <th>Date <i class="fas fa-sort-down ml-1 text-primary"
+                                            title="Sorted by Date descending"></i></th>
                                     <th>Origin</th>
                                     <th>Destination</th>
                                     <th>Created By</th>
+                                    <th>Equipment</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -188,6 +200,57 @@
             <div class="spinner-grow text-primary" role="status" style="animation-delay: 0.2s"></div>
             <div class="spinner-grow text-primary" role="status" style="animation-delay: 0.4s"></div>
             <p class="mt-2 text-white">Loading IPA data...</p>
+        </div>
+    </div>
+
+    {{-- Equipment Details Modal --}}
+    <div class="modal fade" id="equipmentDetailsModal" tabindex="-1" role="dialog"
+        aria-labelledby="equipmentDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="equipmentDetailsModalLabel">
+                        <i class="fas fa-truck-loading mr-2"></i> Equipment Details
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center py-3" id="equipmentLoading">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2">Loading equipment details...</p>
+                    </div>
+                    <div id="equipmentDetails" class="d-none">
+                        <h6 class="border-bottom pb-2 mb-3">
+                            IPA: <span id="modalIpaNo" class="font-weight-normal"></span> |
+                            Date: <span id="modalIpaDate" class="font-weight-normal"></span>
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Unit No</th>
+                                        <th>Description</th>
+                                        <th>Unit Model</th>
+                                        <th>Plant Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipmentTableBody">
+                                    <!-- Equipment data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="noEquipmentMessage" class="d-none text-center py-4">
+                        <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+                        <p>No equipment found for this IPA.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -325,11 +388,12 @@
 
             // Initialize DataTable
             const movingsTable = $("#movings").DataTable({
-                processing: true,
+                processing: false,
                 serverSide: true,
                 deferRender: true,
                 retrieve: true,
                 searching: false,
+                ordering: false,
                 ajax: {
                     url: '{{ route('movings.index.data') }}',
                     data: function(d) {
@@ -342,7 +406,12 @@
                         d.date_to = $('#date_to').val();
                         d.from_project_id = $('#from_project_id').val();
                         d.to_project_id = $('#to_project_id').val();
+                        d.equipment_search = $('#equipment_search').val();
+
                         return d;
+                    },
+                    beforeSend: function() {
+                        loadingOverlay.removeClass('d-none');
                     },
                     dataSrc: function(json) {
                         // Hide loading overlay when data is loaded
@@ -365,7 +434,6 @@
                 },
                 columns: [{
                         data: 'DT_RowIndex',
-                        orderable: false,
                         searchable: false,
                         className: 'text-center'
                     },
@@ -385,19 +453,16 @@
                         data: 'created_by'
                     },
                     {
+                        data: 'equipment'
+                    },
+                    {
                         data: 'action',
-                        orderable: false,
                         searchable: false
                     },
-                ],
-                orderCellsTop: true,
-                order: [
-                    [2, 'desc']
                 ],
                 pageLength: 10,
                 responsive: true,
                 language: {
-                    processing: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>',
                     emptyTable: '<div class="text-center py-4"><i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i><br>No IPA records found</div>'
                 },
                 dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6">>rtip',
@@ -407,6 +472,12 @@
                         $(this).addClass('animated fadeIn');
                         $(this).css('animation-delay', (index * 0.05) + 's');
                     });
+
+                    // Initialize tooltips
+                    $('[data-toggle="tooltip"]').tooltip({
+                        container: 'body',
+                        html: true
+                    });
                 }
             });
 
@@ -414,20 +485,17 @@
             $('#quick_search').on('keyup', function() {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(function() {
-                    loadingOverlay.removeClass('d-none');
                     movingsTable.ajax.reload();
                 }, 500);
             });
 
             // Quick search button click event
             $('#btn-quick-search').on('click', function() {
-                loadingOverlay.removeClass('d-none');
                 movingsTable.ajax.reload();
             });
 
             // Search button click event
             $('#btn-search').on('click', function() {
-                loadingOverlay.removeClass('d-none');
                 movingsTable.ajax.reload();
             });
 
@@ -437,7 +505,7 @@
                 $('#quick_search').val('');
                 $('#from_project_id').val('').trigger('change');
                 $('#to_project_id').val('').trigger('change');
-                loadingOverlay.removeClass('d-none');
+                $('#equipment_search').val('');
                 movingsTable.ajax.reload();
             });
 
@@ -449,16 +517,67 @@
                 }
             });
 
-            // Improved loading overlay animations
-            $(document).ajaxStart(function() {
-                loadingOverlay.removeClass('d-none');
-            }).ajaxStop(function() {
-                loadingOverlay.addClass('d-none');
-            });
-
             // Fix for table responsive behavior on mobile
             $(window).resize(function() {
                 movingsTable.responsive.recalc();
+            });
+
+            // Equipment details modal
+            $(document).on('click', '.show-equipment', function() {
+                const movingId = $(this).data('id');
+
+                // Show modal and loading state
+                $('#equipmentDetailsModal').modal('show');
+                $('#equipmentLoading').removeClass('d-none');
+                $('#equipmentDetails').addClass('d-none');
+                $('#noEquipmentMessage').addClass('d-none');
+
+                // Fetch equipment details
+                $.ajax({
+                    url: `/moving/${movingId}/equipment`,
+                    method: 'GET',
+                    success: function(response) {
+                        // Hide loading
+                        $('#equipmentLoading').addClass('d-none');
+
+                        // Set moving details
+                        $('#modalIpaNo').text(response.moving.ipa_no);
+                        $('#modalIpaDate').text(response.moving.ipa_date);
+
+                        if (response.equipment.length > 0) {
+                            // Clear existing table rows
+                            $('#equipmentTableBody').empty();
+
+                            // Add equipment rows
+                            response.equipment.forEach(function(item) {
+                                $('#equipmentTableBody').append(`
+                                    <tr>
+                                        <td>${item.unit_code}</td>
+                                        <td>${item.description}</td>
+                                        <td>${item.unit_model || 'N/A'}</td>
+                                        <td>${item.plant_type || 'N/A'}</td>
+                                    </tr>
+                                `);
+                            });
+
+                            // Show equipment details
+                            $('#equipmentDetails').removeClass('d-none');
+                        } else {
+                            // Show no equipment message
+                            $('#noEquipmentMessage').removeClass('d-none');
+                        }
+                    },
+                    error: function() {
+                        // Hide loading, show error
+                        $('#equipmentLoading').addClass('d-none');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to load equipment details. Please try again.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
             });
         });
     </script>

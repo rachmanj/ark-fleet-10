@@ -80,7 +80,7 @@
                                 @endif
 
                                 <div class="position-relative mt-4">
-                                    <img src="{{ asset('images/equipment-placeholder.png') }}" alt="Equipment"
+                                    <img src="{{ asset('adminlte/dist/img/photo1.png') }}" alt="Equipment"
                                         class="img-fluid mb-3 equipment-image shadow-sm rounded"
                                         onerror="this.src='{{ asset('adminlte/dist/img/photo1.png') }}'">
                                     <h4 class="text-bold">{{ $equipment->unit_no }}</h4>
@@ -523,7 +523,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('equipments.movings.data', $equipment->id) }}',
+                    url: '{{ url(route('equipments.movings.data', $equipment->id, false)) }}',
                     beforeSend: function() {
                         $('#movings-loading').removeClass('d-none');
                     },
@@ -559,7 +559,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('equipments.legals.data', $equipment->id) }}',
+                    url: '{{ url(route('equipments.legals.data', $equipment->id, false)) }}',
                     beforeSend: function() {
                         $('#legals-loading').removeClass('d-none');
                     },
@@ -602,7 +602,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('equipments.acquisitions.data', $equipment->id) }}',
+                    url: '{{ url(route('equipments.acquisitions.data', $equipment->id, false)) }}',
                     beforeSend: function() {
                         $('#acquisitions-loading').removeClass('d-none');
                     },
@@ -642,7 +642,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('equipments.insurance.data', $equipment->id) }}',
+                    url: '{{ url(route('equipments.insurance.data', $equipment->id, false)) }}',
                     beforeSend: function() {
                         $('#insurance-loading').removeClass('d-none');
                     },
@@ -685,7 +685,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('equipments.others.data', $equipment->id) }}',
+                    url: '{{ url(route('equipments.others.data', $equipment->id, false)) }}',
                     beforeSend: function() {
                         $('#others-loading').removeClass('d-none');
                     },
@@ -731,7 +731,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('equipments.changes.data', $equipment->id) }}',
+                    url: '{{ url(route('equipments.changes.data', $equipment->id, false)) }}',
                     beforeSend: function() {
                         $('#changes-loading').removeClass('d-none');
                     },

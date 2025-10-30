@@ -1,10 +1,13 @@
 <div class="card card-info">
     <div class="card-header border-transparent">
         <h3 class="card-title">Summary by Unit Status <small>(excl SOLD)</small></h3>
+        <div class="card-tools">
+            <span id="filterStatus" class="badge badge-info"></span>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table m-0 table-striped">
+            <table id="unitStatusTable" class="table m-0 table-striped">
                 <thead>
                     <tr>
                         <th>Projects</th>

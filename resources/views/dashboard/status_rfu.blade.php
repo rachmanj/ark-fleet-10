@@ -1,10 +1,18 @@
 <div class="card card-info">
     <div class="card-header border-transparent">
         <h3 class="card-title">Summary RFU / BD <small>(active units only)</small></h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus table-collapse-btn"></i>
+            </button>
+            <button type="button" class="btn btn-tool" title="Expand Table">
+                <i class="fas fa-expand" id="expandTable"></i>
+            </button>
+        </div>
     </div>
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table m-0 table-striped table-bordered">
+        <div class="sticky-table-wrapper">
+            <table class="table m-0 table-striped table-bordered sticky-table">
                 <thead>
                     <tr>
                         <th class="text-center" rowspan="2">Plant Group Name</th>
@@ -59,5 +67,42 @@
                 </tbody>  
             </table>
         </div>
+        <div class="card-footer text-muted small">
+            <i class="fas fa-info-circle"></i> First column is sticky for easier horizontal scrolling. 
+            Click <i class="fas fa-expand"></i> to fullscreen.
+        </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const expandBtn = document.getElementById('expandTable');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', function() {
+                const tableWrapper = document.querySelector('.sticky-table-wrapper');
+                if (tableWrapper) {
+                    if (!document.fullscreenElement) {
+                        tableWrapper.requestFullscreen().catch(err => {
+                            alert('Error attempting to enable fullscreen: ' + err.message);
+                        });
+                        this.classList.remove('fa-expand');
+                        this.classList.add('fa-compress');
+                    } else {
+                        document.exitFullscreen();
+                        this.classList.remove('fa-compress');
+                        this.classList.add('fa-expand');
+                    }
+                }
+            });
+        }
+
+        // Exit fullscreen handler
+        document.addEventListener('fullscreenchange', function() {
+            const expandBtn = document.getElementById('expandTable');
+            if (expandBtn && !document.fullscreenElement) {
+                expandBtn.classList.remove('fa-compress');
+                expandBtn.classList.add('fa-expand');
+            }
+        });
+    });
+</script>

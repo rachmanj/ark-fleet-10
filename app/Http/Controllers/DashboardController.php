@@ -28,6 +28,8 @@ class DashboardController extends Controller
             'documents_expired' => $this->getDocumentsExpired(),
             'projects_for_active_units' => $this->getCurrentProjectsForActiveUnits(),
             'active_units' => $this->getActiveUnits(),
+            'stats_trends' => $this->getStatsTrends(),
+            'quick_stats' => $this->getQuickStats(),
         ]);
     }
 
@@ -144,5 +146,65 @@ class DashboardController extends Controller
     public function test()
     {
         return $this->getCurrentProjectsForActiveUnits();
+    }
+
+    public function getStatsTrends()
+    {
+        $currentTotal = Equipment::where('unitstatus_id', '<>', 4)->count();
+        $currentRFU = Equipment::where('unitstatus_id', 1)->count();
+        $currentExpiring = Document::whereNull('extended_doc_id')
+            ->whereBetween('due_date', [Carbon::now(), Carbon::now()->addMonths(2)])
+            ->count();
+        
+        $lastWeekTotal = Equipment::where('unitstatus_id', '<>', 4)
+            ->where('created_at', '<=', Carbon::now()->subWeek())
+            ->count();
+        $lastWeekRFU = Equipment::where('unitstatus_id', 1)
+            ->where('updated_at', '<=', Carbon::now()->subWeek())
+            ->count();
+        $lastWeekExpiring = Document::whereNull('extended_doc_id')
+            ->whereBetween('due_date', [Carbon::now()->subWeek(), Carbon::now()->addMonths(2)->subWeek()])
+            ->where('created_at', '<=', Carbon::now()->subWeek())
+            ->count();
+        
+        $totalTrend = $lastWeekTotal > 0 ? round((($currentTotal - $lastWeekTotal) / $lastWeekTotal) * 100, 1) : 0;
+        $rfuTrend = $lastWeekRFU > 0 ? round((($currentRFU - $lastWeekRFU) / $lastWeekRFU) * 100, 1) : 0;
+        $expiringTrend = $lastWeekExpiring > 0 ? round((($currentExpiring - $lastWeekExpiring) / $lastWeekExpiring) * 100, 1) : 0;
+        
+        return [
+            'total_fleet_trend' => $totalTrend,
+            'rfu_trend' => $rfuTrend,
+            'expiring_trend' => $expiringTrend,
+        ];
+    }
+
+    public function getQuickStats()
+    {
+        // Calculate fleet utilization (RFU / Total)
+        $totalFleet = Equipment::where('unitstatus_id', '<>', 4)->count();
+        $rfuCount = Equipment::where('unitstatus_id', 1)->count();
+        $fleetUtilization = $totalFleet > 0 ? round(($rfuCount / $totalFleet) * 100, 1) : 0;
+
+        // Calculate average age in months (based on active_date)
+        $equipmentsWithDate = Equipment::where('unitstatus_id', '<>', 4)
+            ->whereNotNull('active_date')
+            ->get();
+        
+        $totalMonths = 0;
+        $count = 0;
+        
+        foreach ($equipmentsWithDate as $equipment) {
+            $activeDate = Carbon::parse($equipment->active_date);
+            $monthsDiff = $activeDate->diffInMonths(Carbon::now());
+            $totalMonths += $monthsDiff;
+            $count++;
+        }
+        
+        $averageAge = $count > 0 ? round($totalMonths / $count) : 0;
+
+        return [
+            'fleet_utilization' => $fleetUtilization,
+            'average_age' => $averageAge,
+        ];
     }
 }

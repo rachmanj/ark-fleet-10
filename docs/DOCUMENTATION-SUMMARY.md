@@ -72,7 +72,34 @@ I've conducted a comprehensive analysis of the ARKFleet Equipment Fleet Manageme
 - **Architectural Strengths** section
 - **Archive guidelines** for memory management
 
-### 3. **docs/decisions.md** (Comprehensive - 500+ lines)
+### 3. **docs/api-documentation.md** (Comprehensive - 700+ lines)
+**Purpose**: REST API reference and integration guide
+
+**Contents**:
+- Complete API endpoint documentation
+- **3 Core Endpoints**:
+  1. Equipment List with filtering (GET /api/equipments)
+  2. Equipment Detail by unit number (GET /api/equipments/by-unit/{unit_no})
+  3. Projects List (GET /api/projects)
+  
+- Request/response examples for all endpoints
+- Query parameter documentation
+- Response field definitions (24 fields per equipment)
+- Reference data tables (unit statuses, plant groups, asset categories)
+- Error response formats and HTTP status codes
+- **Code examples** in JavaScript, PHP, and Python
+- CORS configuration guide
+- Future enhancement roadmap
+- Troubleshooting guide
+- API changelog
+
+**Use Cases**:
+- Mobile application integration
+- External system integration
+- Third-party reporting tools
+- Custom dashboard development
+
+### 4. **docs/decisions.md** (Comprehensive - 500+ lines)
 **Purpose**: Technical decision records with rationale
 
 **Contents**:

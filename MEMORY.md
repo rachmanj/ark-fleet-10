@@ -510,6 +510,60 @@ GET /api/projects
 
 ---
 
+### [017] Equipment API Expansion with Human-Readable Parameters (2025-10-30) ✅ COMPLETE
+
+**Feature**: Expanded minimal REST API with filtering capabilities, detailed equipment lookup, and human-readable query parameters.
+
+**Implementation**:
+
+**New Endpoints**:
+1. `GET /api/equipments` - Enhanced with human-readable filtering
+   - **Recommended filters**: `project_code` (e.g., 000H), `status` (ACTIVE/IN-ACTIVE/SCRAP/SOLD), `plant_group` (name)
+   - **Legacy filters**: `current_project_id`, `plant_group_id`, `unitstatus_id` (still supported)
+   - Returns 24 fields per equipment (expanded from 6)
+   - Example: `/api/equipments?project_code=000H&status=ACTIVE`
+
+2. `GET /api/equipments/by-unit/{unit_no}` - Get equipment by unit number
+   - Lookup by `unit_no` (e.g., `/api/equipments/by-unit/EX-001`)
+   - Returns detailed equipment info with nested relationship objects
+   - 404 response if equipment not found
+
+**API Resources Created**:
+- `EquipmentResource`: Flat structure with 24 fields (basic info + relationships as names + IDs)
+- `EquipmentDetailResource`: Nested structure with relationship objects for detailed view
+
+**Human-Readable Parameters**:
+- `project_code`: Filter by project code instead of ID (e.g., `project_code=017C`)
+- `status`: Filter by status name (ACTIVE, IN-ACTIVE, SCRAP, SOLD) - case-insensitive
+- `plant_group`: Filter by plant group name instead of ID
+- Backward compatible: All ID-based parameters still work
+
+**Controller Implementation**:
+```php
+// Support both human-readable and ID-based parameters
+if ($request->has('project_code')) {
+    $equipments->whereHas('current_project', function ($query) use ($request) {
+        $query->where('project_code', $request->project_code);
+    });
+} elseif ($request->has('current_project_id')) {
+    $equipments->where('current_project_id', $request->current_project_id);
+}
+```
+
+**Documentation Created**:
+- `docs/api-documentation.md` (700+ lines): Complete API reference with code examples
+- `docs/API-QUICK-REFERENCE.md`: One-page cheat sheet for developers
+- Updated `docs/architecture.md` with API overview
+- Updated `docs/DOCUMENTATION-SUMMARY.md` with API documentation entry
+
+**Key Learning**: 
+1. Human-readable API parameters significantly improve developer experience and API discoverability
+2. Supporting both old and new parameter formats ensures backward compatibility during transition
+3. Case-insensitive string matching (using `strtoupper()`) prevents common user errors
+4. Using `whereHas()` for filtering through relationships maintains query performance with proper indexing
+
+---
+
 ## Technical Debt & Known Issues
 
 ### 🔴 CRITICAL: Database Configuration Mismatch

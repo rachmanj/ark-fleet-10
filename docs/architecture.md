@@ -414,10 +414,41 @@ GET  /permissions             - List permissions
 
 ### API Routes
 
+The application provides a REST API for equipment and project data access. For complete API documentation, see **[docs/api-documentation.md](./api-documentation.md)**.
+
+#### Core Endpoints
+
 ```
-GET /api/equipments           - Equipment list (JSON)
-GET /api/projects             - Projects list (JSON)
+GET /api/equipments                      - Equipment list with filtering
+    Recommended Query Parameters (human-readable):
+    - project_code (string)              - Filter by project code (e.g., 000H, 017C)
+    - status (string)                    - Filter by status: ACTIVE, IN-ACTIVE, SCRAP, SOLD
+    - plant_group (string)               - Filter by plant group name
+    
+    Legacy Parameters (still supported):
+    - current_project_id (integer)       - Filter by project ID
+    - unitstatus_id (integer)            - Filter by status ID
+    - plant_group_id (integer)           - Filter by group ID
+    
+GET /api/equipments/by-unit/{unit_no}   - Equipment detail by unit number
+GET /api/projects                        - Active projects list
+GET /api/user                            - Authenticated user (requires Sanctum token)
 ```
+
+#### Response Format
+
+- Equipment list returns 24 fields including technical specs and relationship data
+- Equipment detail returns nested relationship objects
+- No authentication required for equipment/project endpoints (public API)
+
+#### Usage
+
+See [docs/api-documentation.md](./api-documentation.md) for:
+- Complete request/response examples
+- Field definitions
+- Error handling
+- Code samples (JavaScript, PHP, Python)
+- Integration guides
 
 ---
 

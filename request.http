@@ -1,0 +1,4 @@
+GET http://localhost:8000/api/equipments?status=ACTIVE
+
+###
+GET http://localhost:8000/api/equipments?project_code=000H
